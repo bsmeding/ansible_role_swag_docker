@@ -1,0 +1,12 @@
+namespace: bsmeding
+name: sample
+version: 1.0.0
+readme: README.md
+authors:
+  - Bart Smeding
+description: Ansible role for sample purpose
+license: MIT
+repository: https://github.com/bsmeding/ansible-role-sample
+documentation: https://netdevops.it/ansible_roles_and_collections/
+homepage: https://netdevops.it
+issues: https://github.com/bsmeding/ansible-role-sample/issues

@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: Bart Smeding
+  description: Ansible role for sample purpose
+  license: MIT
+  min_ansible_version: 2.10
+  galaxy_tags: []
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+dependencies: []
