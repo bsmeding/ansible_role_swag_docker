@@ -3,13 +3,19 @@ dependency:
   name: galaxy
 driver:
   name: docker
+
 platforms:
   - name: instance
-    image: "bsmeding/ansible_cicd_ubuntu2204"
-    command: ""
-    privileged: true
+    image: bsmeding/ansible_cicd_ubuntu2204
     pre_build_image: true
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
 provisioner:
   name: ansible
+  playbooks:
+    prepare: prepare.yml
+
 verifier:
   name: ansible

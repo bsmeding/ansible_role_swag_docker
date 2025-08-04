@@ -1,0 +1,38 @@
+---
+- name: Verify - SWAG container is running
+  hosts: all
+  become: false
+  tasks:
+    - name: Include default vars
+      ansible.builtin.include_vars:
+        dir: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/"
+        extensions:
+          - "yml"
+
+    - name: Wait for SWAG container to be ready
+      ansible.builtin.wait_for:
+        host: localhost
+        port: "{{ swag__port_web_http | default(80) }}"
+        delay: 30
+        timeout: 300
+        state: started
+
+    - name: Check if SWAG web interface is accessible
+      ansible.builtin.uri:
+        url: "http://localhost:{{ swag__port_web_http | default(80) }}"
+        return_content: true
+      register: swag_web_output
+      failed_when: swag_web_output is failed or swag_web_output.status != 200
+
+    - name: Show SWAG web output
+      ansible.builtin.debug:
+        var: swag_web_output
+
+    - name: Verify SWAG container is running
+      community.docker.docker_container_info:
+        name: "{{ swag__name | default('swag') }}"
+      register: swag_container_info
+
+    - name: Show container info
+      ansible.builtin.debug:
+        var: swag_container_info 
