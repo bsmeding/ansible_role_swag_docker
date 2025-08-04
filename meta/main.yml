@@ -1,12 +1,37 @@
 ---
+dependencies: []
+
 galaxy_info:
-  author: Bart Smeding
-  description: Ansible role for sample purpose
+  role_name: swag_docker
+  author: bsmeding
+  description: Secure Web Application Gateway (SWAG) running in docker container
+  company: "b@rtsmeding.nl"
   license: MIT
   min_ansible_version: 2.10
-  galaxy_tags: []
   platforms:
+    - name: Fedora
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+        - bookworm
     - name: Ubuntu
       versions:
+        - bionic
         - focal
-dependencies: []
+        - jammy
+    - name: Alpine
+      version:
+        - all
+    - name: ArchLinux
+      versions:
+        - all
+  galaxy_tags:
+    - web
+    - system
+    - nginx
+    - letsencrypt
+    - swag
+    - docker

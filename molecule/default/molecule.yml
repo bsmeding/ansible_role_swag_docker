@@ -16,6 +16,9 @@ provisioner:
   name: ansible
   playbooks:
     prepare: prepare.yml
+  config_options:
+    defaults:
+      roles_path: ../../../
 
 verifier:
   name: ansible
