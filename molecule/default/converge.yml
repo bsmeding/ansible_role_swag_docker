@@ -3,9 +3,9 @@
   hosts: all
   become: true
   vars:
-    swag__env:
-      SWAG_ROOT_PASSWORD: "molecule-test"
-    swag__hostname: "swag.local"
+    swag__url: "swag.local"
+    swag__email: "test@example.com"
+    docker_service_manage: true
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:
@@ -34,9 +34,25 @@
       file:
         path: /var/run/docker.sock
         mode: '0666'
-      when: docker_socket.stat.exists and docker_socket.stat.exists
+      when: docker_socket.stat.exists
+
+    - name: Start Docker service manually if needed
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+      when: 
+        - ansible_service_mgr == 'systemd'
+        - docker_socket.stat.exists
+      ignore_errors: true
+
+    - name: Wait for Docker service to be ready
+      ansible.builtin.wait_for:
+        path: /var/run/docker.sock
+        timeout: 60
+      when: docker_socket.stat.exists
 
   roles:
     - role: bsmeding.docker
-      when: docker_socket.stat.exists and docker_socket.stat.exists
+      when: docker_socket.stat.exists
     - role: bsmeding.swag_docker

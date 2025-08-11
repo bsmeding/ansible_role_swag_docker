@@ -1,1 +1,26 @@
-# Main tasks
+# Main tasks for SWAG Docker role
+
+- name: Create SWAG directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: "{{ item.mode }}"
+    owner: root
+    group: root
+  loop: "{{ swag__directories }}"
+
+- name: Deploy SWAG container
+  community.docker.docker_container:
+    name: "{{ swag__name }}"
+    image: "{{ swag__image }}"
+    state: started
+    restart_policy: unless-stopped
+    ports: "{{ swag__ports }}"
+    volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
+    env: "{{ swag__default_env | combine(swag__env) }}"
+    networks: "{{ swag__container_networks | map(attribute='name') | list }}"
+    network_mode: "{{ swag__network_mode }}"
+    log_driver: "{{ swag__log_driver }}"
+    log_options: "{{ swag__log_options }}"
+    pull: "{{ swag__pull_image }}"
+  when: swag__remove_existing_container | bool == false

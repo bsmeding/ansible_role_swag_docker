@@ -10,4 +10,4 @@
 
     - name: Install Python requests module
       pip:
-        name: requests 
+        name: requests

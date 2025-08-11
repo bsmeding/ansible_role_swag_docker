@@ -1,0 +1,7 @@
+---
+roles:
+  - src: bsmeding.docker
+
+collections:
+  - name: community.docker
+    version: ">=7.0.0"
