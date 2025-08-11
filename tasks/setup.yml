@@ -23,6 +23,7 @@
 - name: Create a network for swag
   community.docker.docker_network:
     name: "{{ swag__network }}"
+    state: present
     ipam_config:
       - subnet: "{{ swag__network_cidr }}"
         gateway: "{{ swag__network_cidr | ansible.utils.ipaddr('next_usable') }}"
@@ -32,6 +33,7 @@
   community.docker.docker_container:
     name: "{{ swag__name }}"
     image: "{{ swag__image }}"
+    state: started
     restart_policy: always
     network_mode: "{{ swag__network_mode | default(omit)}}"
     networks: "{{ swag__container_networks }}"
@@ -41,3 +43,6 @@
     volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
     log_driver: "{{ swag__log_driver }}"
     log_options: "{{ swag__log_options }}"
+    pull: "{{ swag__pull_image }}"
+    force_kill: false
+    auto_remove: false

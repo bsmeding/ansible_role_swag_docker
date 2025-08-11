@@ -8,6 +8,7 @@
     swag__remove_existing_container: false
     swag__remove_existing_home_dir: false
     swag__port_web: 8080
+    swag__pull_image: false
     # Skip Docker service management in test environment
     docker_service_manage: false
   pre_tasks:
