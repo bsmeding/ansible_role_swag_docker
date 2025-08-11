@@ -5,7 +5,7 @@ dependency:
   options:
     ignore-errors: true
     ignore-certs: true
-    role-file: ../../requirements.yml
+    role-file: requirements.yml
 driver:
   name: docker
 platforms:
