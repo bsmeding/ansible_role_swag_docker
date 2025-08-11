@@ -29,7 +29,7 @@ swag__container_networks:
   - name: "{{ swag__network }}"
 swag__purge_networks: false
 swag__log_driver: json-file
-swag__log_options:
+# swag__log_options:
 swag__home: "/opt/{{ swag__name }}"
 swag__use_local_directories_instead_of_volumes: true  # Volumes not ready yet, onlye mapped folders
 swag__directories:
