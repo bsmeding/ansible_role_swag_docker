@@ -1,3 +1,4 @@
+---
 # Main tasks for SWAG Docker role
 
 - name: Create SWAG directories

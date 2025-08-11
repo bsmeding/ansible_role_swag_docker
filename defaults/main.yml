@@ -3,7 +3,7 @@ swag__name: swag
 swag__image: lscr.io/linuxserver/swag
 swag__port_web: 80
 swag__port_ssh: 443
-swag__skip_setup: false # Disable setup stage of SWAG image
+swag__skip_setup: false  # Disable setup stage of SWAG image
 swag__url: 'example.com'
 swag__subdomains: 'www'
 swag__validation: 'http'
@@ -13,13 +13,13 @@ swag__validation: 'http'
 # swag__cloudflare_global_api:   # optional
 # swag__cloudflare_api_token:   # optional
 swag__email: 'mail@example.com'
-swag__only_subdomains: 'false'
+swag__only_subdomains: false
 # swag__extra_domain:
-swag__staging: 'true'                                 # Only usable when letsencrypt is used as provider
-swag__docker_mods: 'linuxserver/mods:swag-cloudflare-real-ip'          # See https://github.com/linuxserver/docker-mods
-swag__remove_existing_container: no
-swag__remove_existing_home_dir: no                     # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
-swag__pull_image: yes
+swag__staging: true  # Only usable when letsencrypt is used as provider
+swag__docker_mods: 'linuxserver/mods:swag-cloudflare-real-ip'  # See https://github.com/linuxserver/docker-mods
+swag__remove_existing_container: false
+swag__remove_existing_home_dir: false  # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
+swag__pull_image: true
 
 swag__network_mode: 'default'
 swag__network_cidr: '172.16.81.0/26'
@@ -27,23 +27,23 @@ swag__network: 'proxy'
 swag__container_networks:
   - name: bridge
   - name: "{{ swag__network }}"
-swag__purge_networks: no
+swag__purge_networks: false
 swag__log_driver: json-file
 swag__log_options:
 swag__home: "/opt/{{ swag__name }}"
-swag__use_local_directories_instead_of_volumes: true          # Volumes not ready yet, onlye mapped folders
+swag__use_local_directories_instead_of_volumes: true  # Volumes not ready yet, onlye mapped folders
 swag__directories:
-- path: "{{ swag__home }}"
-  mode: "0760"
-- path: "{{ swag__home }}/config"
-  mode: "0770"
+  - path: "{{ swag__home }}"
+    mode: "0760"
+  - path: "{{ swag__home }}/config"
+    mode: "0770"
 swag__ports:
-- "{{ swag__port_web }}:80"
-- "{{ swag__port_ssh }}:443"
+  - "{{ swag__port_web }}:80"
+  - "{{ swag__port_ssh }}:443"
 swag__directory_volumes:
-- "{{ swag__home }}/config:/config"
+  - "{{ swag__home }}/config:/config"
 swag__file_volumes:
-- "/var/run/docker.sock:/var/run/docker.sock:ro"
+  - "/var/run/docker.sock:/var/run/docker.sock:ro"
 swag__default_env:
   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
   PUID: "{{ docker_uid|default(1040) }}"
@@ -56,25 +56,10 @@ swag__default_env:
   EMAIL: "{{ swag__email }}"
   ONLY_SUBDOMAINS: "{{ swag__only_subdomains | default(false) | string }}"
   EXTRA_DOMAINS: "{{ swag__extra_domain | default(omit) }}"
-  STAGING: "{{ swag__staging | default(false) | string }}" 
+  STAGING: "{{ swag__staging | default(false) | string }}"
   DOCKER_MODS: "{{ swag__docker_mods | default(omit) }}"
-  CF_ZONE_ID: "{{ swag__cloudflare_zone_id | default(omit) }}" 
-  CF_ACCOUNT_ID: "{{ swag__cloudflare_account_id | default(omit) }}" 
+  CF_ZONE_ID: "{{ swag__cloudflare_zone_id | default(omit) }}"
+  CF_ACCOUNT_ID: "{{ swag__cloudflare_account_id | default(omit) }}"
   CF_API_TOKEN: "{{ swag__cloudflare_api_token | default(omit) }}"
-swag__env: {}  
-  # DUCKDNSTOKEN: "{{ swag__duckdnstoken | default(omit) }}"
+swag__env: {}
 swag__proxy_confs_subdomain: []
-  # - server_name: dash.example.com
-  #   listen: 443
-  #   enable_ldap: false
-  #   enable_authelia: true
-  #   default_upstream_proto: http
-  #   default_upstream_url: dashboard
-  #   default_upstream_port: 9090
-  # - server_name: app1.example.com
-  #   listen: 443
-  #   enable_ldap: false
-  #   enable_authelia: false
-  #   default_upstream_proto: http
-  #   default_upstream_url: 192.168.1.10
-  #   default_upstream_port: 8080

@@ -5,7 +5,7 @@
   vars:
     swag__url: "swag.local"
     swag__email: "test@example.com"
-    docker_service_manage: true
+    docker_service_manage: false
   pre_tasks:
     - name: Update apt cache
       ansible.builtin.apt:
@@ -36,12 +36,9 @@
         mode: '0666'
       when: docker_socket.stat.exists
 
-    - name: Start Docker service manually if needed
-      ansible.builtin.service:
-        name: docker
-        state: started
-        enabled: true
-      when: 
+    - name: Start Docker service manually
+      ansible.builtin.command: systemctl start docker
+      when:
         - ansible_service_mgr == 'systemd'
         - docker_socket.stat.exists
       ignore_errors: true
@@ -53,6 +50,6 @@
       when: docker_socket.stat.exists
 
   roles:
-    - role: bsmeding.docker
+    - role: ../../../ansible_role_docker
       when: docker_socket.stat.exists
-    - role: bsmeding.swag_docker
+    - role: ../../

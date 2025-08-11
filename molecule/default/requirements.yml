@@ -1,6 +1,7 @@
 ---
 roles:
-  - src: bsmeding.docker
+  - src: ../../../ansible_role_docker
+    name: bsmeding.docker
 
 collections:
   - name: community.docker
