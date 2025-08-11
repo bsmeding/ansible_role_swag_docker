@@ -1,6 +1,6 @@
 ---
 - name: Remove existing {{ swag__name }} container
-  docker_container:
+  community.docker.docker_container:
     name: "{{ swag__name }}"
     state: absent
   when: swag__remove_existing_container
@@ -16,7 +16,7 @@
     state: directory
     path: "{{ item.path }}"
     mode: "{{ item.mode | default('0755') }}"
-    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    owner: "{{ item.owner | default(docker_uid) | default('root') }}"  # First docker user (if docker role has run), otherwise default role, otherwise root
     group: "{{ item.group | default(docker_gid) | default('root') }}"
   with_items: "{{ swag__directories }}"
 
@@ -29,7 +29,7 @@
         iprange: "{{ swag__network_cidr }}"
 
 - name: Run swag container
-  docker_container:
+  community.docker.docker_container:
     name: "{{ swag__name }}"
     image: "{{ swag__image }}"
     restart_policy: always

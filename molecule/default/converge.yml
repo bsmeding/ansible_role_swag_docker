@@ -50,6 +50,6 @@
       when: docker_socket.stat.exists
 
   roles:
-    - role: ../../../ansible_role_docker
+    - role: bsmeding.docker
       when: docker_socket.stat.exists
-    - role: ../../
+    - role: bsmeding.swag_docker

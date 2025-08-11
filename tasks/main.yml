@@ -6,4 +6,4 @@
   when: not swag__skip_setup|bool
 
 - name: Include tasks configure Nginx
-  include_tasks: configure_nginx.yml  
+  include_tasks: configure_nginx.yml

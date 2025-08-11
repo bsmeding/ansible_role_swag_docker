@@ -17,7 +17,7 @@
     owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
     group: "{{ item.group | default(docker_gid) | default('root') }}"
   loop: "{{ swag__proxy_confs_subdomain }}"
-  notify: restart swag     
+  notify: restart swag
   when: swag__proxy_confs_subdomain is defined and swag__proxy_confs_subdomain|length>0
 
 - name: "Copy local proxy-confs if exists in {{ playbook_dir }}/files/nginx/proxy-confs/"
@@ -37,7 +37,7 @@
     owner: "{{ docker_uid }}"
     group: "{{ docker_gid }}"
     mode: '0640'
-  failed_when: false  
+  failed_when: false
   notify: restart swag
 
 - name: "Copy websites from ./files/nginx/sites/<subfolder> to /var/www (if exists)"
@@ -47,8 +47,8 @@
     owner: "{{ docker_uid }}"
     group: "{{ docker_gid }}"
     mode: '0740'
-  failed_when: false  
-  notify: restart swag  
+  failed_when: false
+  notify: restart swag
 
 # Set DNS config, currently only cloudflare
 - name: set dns config for Cloudflare
@@ -58,14 +58,4 @@
     owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
     group: "{{ item.group | default(docker_gid) | default('root') }}"
   when: (swag__cloudflare_global_email is defined and swag__cloudflare_global_api is defined) or swag__cloudflare_api_token is defined
-  notify: restart swag      
-
-
-# # Enable Cloudflare Real IP, when linuxserver/mods:swag-cloudflare-real-ip is in swag__docker_mods
-# - name: Set Cloudflare Real IP in nginx.conf
-
-
-#   when: "swag__docker_mods is defined and ('linuxserver/mods:swag-cloudflare-real-ip' in swag__docker_mods)"
-
-
-
+  notify: restart swag
