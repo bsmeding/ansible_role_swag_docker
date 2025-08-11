@@ -1,0 +1,71 @@
+---
+# Tasks to configure Nginx (site and proxy configs)
+
+# Check if config files are present in ./files/nginx/proxy-confs/
+# - name: Find .conf files in ./files/nginx/proxy-confs/
+#   ansible.builtin.find:
+#     paths: "{{ playbook_dir }}/files/nginx/proxy-confs/"
+#     patterns: "*.conf"
+#   register: local_proxy_confs_files
+#   delegate_to: localhost
+
+# Proxy confs must end in subdomain.conf to auto load
+- name: Generate proxy confs from swag__proxy_confs_subdomain variable
+  ansible.builtin.template:
+    src: proxy-confs/template_subdomain.conf.j2
+    dest: "{{ swag__home }}/config/nginx/proxy-confs/{{ item.server_name }}.subdomain.conf"
+    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    group: "{{ item.group | default(docker_gid) | default('root') }}"
+  loop: "{{ swag__proxy_confs_subdomain }}"
+  notify: restart swag     
+  when: swag__proxy_confs_subdomain is defined and swag__proxy_confs_subdomain|length>0
+
+- name: "Copy local proxy-confs if exists in {{ playbook_dir }}/files/nginx/proxy-confs/"
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/nginx/proxy-confs/"
+    dest: "{{ swag__home }}/config/nginx/proxy-confs"
+    owner: "{{ docker_uid }}"
+    group: "{{ docker_gid }}"
+    mode: '0640'
+  failed_when: false
+  notify: restart swag
+
+- name: "Copy local site-confs if exists in {{ playbook_dir }}/files/nginx/site-confs/"
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/nginx/site-confs/"
+    dest: "{{ swag__home }}/config/nginx/site-confs"
+    owner: "{{ docker_uid }}"
+    group: "{{ docker_gid }}"
+    mode: '0640'
+  failed_when: false  
+  notify: restart swag
+
+- name: "Copy websites from ./files/nginx/sites/<subfolder> to /var/www (if exists)"
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/nginx/sites/"
+    dest: "/var/www"
+    owner: "{{ docker_uid }}"
+    group: "{{ docker_gid }}"
+    mode: '0740'
+  failed_when: false  
+  notify: restart swag  
+
+# Set DNS config, currently only cloudflare
+- name: set dns config for Cloudflare
+  ansible.builtin.template:
+    src: dns-conf/cloudflare.ini.j2
+    dest: "{{ swag__home }}/config/dns-conf/cloudflare.ini"
+    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    group: "{{ item.group | default(docker_gid) | default('root') }}"
+  when: (swag__cloudflare_global_email is defined and swag__cloudflare_global_api is defined) or swag__cloudflare_api_token is defined
+  notify: restart swag      
+
+
+# # Enable Cloudflare Real IP, when linuxserver/mods:swag-cloudflare-real-ip is in swag__docker_mods
+# - name: Set Cloudflare Real IP in nginx.conf
+
+
+#   when: "swag__docker_mods is defined and ('linuxserver/mods:swag-cloudflare-real-ip' in swag__docker_mods)"
+
+
+

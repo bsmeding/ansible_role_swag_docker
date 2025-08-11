@@ -1,0 +1,43 @@
+---
+- name: Remove existing {{ swag__name }} container
+  docker_container:
+    name: "{{ swag__name }}"
+    state: absent
+  when: swag__remove_existing_container
+
+- name: Remove home directory
+  file:
+    state: absent
+    path: "{{ swag__home }}"
+  when: swag__remove_existing_home_dir
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item.path }}"
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    group: "{{ item.group | default(docker_gid) | default('root') }}"
+  with_items: "{{ swag__directories }}"
+
+- name: Create a network for swag
+  community.docker.docker_network:
+    name: "{{ swag__network }}"
+    ipam_config:
+      - subnet: "{{ swag__network_cidr }}"
+        gateway: "{{ swag__network_cidr | ansible.utils.ipaddr('next_usable') }}"
+        iprange: "{{ swag__network_cidr }}"
+
+- name: Run swag container
+  docker_container:
+    name: "{{ swag__name }}"
+    image: "{{ swag__image }}"
+    restart_policy: always
+    network_mode: "{{ swag__network_mode | default(omit)}}"
+    networks: "{{ swag__container_networks }}"
+    ports: "{{ swag__ports }}"
+    # user: "{{ docker_uid|default('swag') }}:{{ docker_gid|default('swag') }}"
+    env: "{{ swag__default_env | combine(swag__env) }}"
+    volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
+    log_driver: "{{ swag__log_driver }}"
+    log_options: "{{ swag__log_options }}"

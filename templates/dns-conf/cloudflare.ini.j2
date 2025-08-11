@@ -1,0 +1,16 @@
+# Instructions: https://github.com/certbot/certbot/blob/master/certbot-dns-cloudflare/certbot_dns_cloudflare/__init__.py#L20
+# Replace with your values
+
+# With global api key:
+{% if swag__cloudflare_global_email is defined and swag__cloudflare_global_api is defined and swag__cloudflare_api_token is undefined %}
+#dns_cloudflare_email = {{ swag__cloudflare_global_email }}
+#dns_cloudflare_api_key = {{ swag__cloudflare_global_api }}
+
+{% endif %}
+
+# With token (comment out both lines above and uncomment below):
+{% if swag__cloudflare_global_email is undefined and swag__cloudflare_global_api is undefined and swag__cloudflare_api_token is defined %}
+
+dns_cloudflare_api_token = {{ swag__cloudflare_api_token }}
+
+{% endif %}

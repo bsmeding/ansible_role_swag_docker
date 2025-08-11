@@ -1,0 +1,54 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen {{ item.listen }} ssl;
+    listen [::]:{{ item.listen }} ssl;
+
+    server_name {{ item.server_name }};
+
+{% if item.acl is defined %}
+{% for aclline in item.acl %}
+    {{ aclline }};
+{% endfor %}
+    deny   all;
+{% endif %}
+
+    include /config/nginx/ssl.conf;
+
+    client_max_body_size 0;
+
+{% if item.enable_ldap is defined and item.enable_ldap %}
+    # enable for ldap auth (requires ldap-location.conf in the location block)
+    include /config/nginx/ldap-server.conf;
+{% endif %}
+{% if item.enable_authelia is defined and item.enable_authelia %}
+    # enable for Authelia (requires authelia-location.conf in the location block)
+    include /config/nginx/authelia-server.conf;
+{% endif %}
+
+    location / {
+        # enable the next two lines for http auth
+        #auth_basic "Restricted";
+        #auth_basic_user_file /config/nginx/.htpasswd;
+
+{% if item.enable_ldap is defined and item.enable_ldap %}
+        # enable for ldap auth (requires ldap-server.conf in the server block)
+        #include /config/nginx/ldap-location.conf;
+{% endif %}
+{% if item.enable_authelia is defined and item.enable_authelia %}
+        # enable for Authelia (requires authelia-server.conf in the server block)
+        include /config/nginx/authelia-location.conf;
+{% endif %}
+
+        include /config/nginx/proxy.conf;
+        include /config/nginx/resolver.conf;
+        set $upstream_app {{ item.default_upstream_url }};
+        set $upstream_port {{ item.default_upstream_port }};
+        set $upstream_proto {{ item.default_upstream_proto }};
+        proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+        #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
