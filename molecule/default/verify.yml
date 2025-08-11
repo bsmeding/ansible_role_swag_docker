@@ -1,7 +1,8 @@
 ---
-- name: Verify - SWAG container is running
+- name: Verify - Swag is running
   hosts: all
   become: false
+  gather_facts: false
   tasks:
     - name: Include default vars
       ansible.builtin.include_vars:
@@ -9,30 +10,26 @@
         extensions:
           - "yml"
 
-    - name: Wait for SWAG container to be ready
-      ansible.builtin.wait_for:
-        host: localhost
-        port: "{{ swag__port_web | default(80) }}"
-        delay: 30
-        timeout: 300
-        state: started
-
-    - name: Check if SWAG web interface is accessible
+    - name: Check that if default page is running
       ansible.builtin.uri:
-        url: "http://localhost:{{ swag__port_web | default(80) }}"
+        url: "http://localhost:8080"
         return_content: true
-      register: swag_web_output
-      failed_when: swag_web_output is failed or swag_web_output.status != 200
+      register: local_webserver_output
+      failed_when: local_webserver_output is failed or local_webserver_output.status != 200
+      # or "'Welcome to our server' not in local_webserver_output.content"
 
-    - name: Show SWAG web output
-      ansible.builtin.debug:
-        var: swag_web_output
+    - name: Show output
+      debug:
+        var: local_webserver_output
 
-    - name: Verify SWAG container is running
+    - name: Verify swag container is running
       community.docker.docker_container_info:
-        name: "{{ swag__name | default('swag') }}"
+        name: "{{ swag__name }}"
       register: swag_container_info
 
-    - name: Show container info
-      ansible.builtin.debug:
-        var: swag_container_info
+    - name: Check swag container status
+      assert:
+        that:
+          - swag_container_info.exists
+          - swag_container_info.container.State.Status == "running"
+        fail_msg: "Swag container is not running"
