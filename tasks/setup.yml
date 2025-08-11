@@ -30,19 +30,14 @@
         iprange: "{{ swag__network_cidr }}"
 
 - name: Run swag container
-  community.docker.docker_container:
+  docker_container:
     name: "{{ swag__name }}"
     image: "{{ swag__image }}"
-    state: started
-    restart_policy: always
+    restart_policy: unless-stopped
     network_mode: "{{ swag__network_mode | default(omit)}}"
     networks: "{{ swag__container_networks }}"
     ports: "{{ swag__ports }}"
-    # user: "{{ docker_uid|default('swag') }}:{{ docker_gid|default('swag') }}"
     env: "{{ swag__default_env | combine(swag__env) }}"
     volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
     log_driver: "{{ swag__log_driver }}"
-    log_options: "{{ swag__log_options }}"
-    pull: "{{ swag__pull_image }}"
-    force_kill: false
-    auto_remove: false
+    log_options: "{{ swag__log_options | default(omit) }}"
