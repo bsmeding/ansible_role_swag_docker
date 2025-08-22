@@ -41,5 +41,3 @@
     volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
     log_driver: "{{ swag__log_driver }}"
     log_options: "{{ swag__log_options | default(omit) }}"
-    purge_networks: yes
-    force_kill: yes
