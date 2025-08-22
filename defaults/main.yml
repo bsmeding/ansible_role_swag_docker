@@ -1,8 +1,8 @@
 ---
 swag__name: swag
 swag__image: lscr.io/linuxserver/swag
-swag__port_web: 80
-swag__port_ssh: 443
+swag__port_http: 80
+swag__port_https: 443
 swag__skip_setup: false  # Disable setup stage of SWAG image
 swag__url: 'example.com'
 swag__subdomains: 'www'
@@ -38,8 +38,8 @@ swag__directories:
   - path: "{{ swag__home }}/config"
     mode: "0770"
 swag__ports:
-  - "{{ swag__port_web }}:80"
-  - "{{ swag__port_ssh }}:443"
+  - "{{ swag__port_http }}:80"
+  - "{{ swag__port_https }}:443"
 swag__directory_volumes:
   - "{{ swag__home }}/config:/config"
 swag__file_volumes:

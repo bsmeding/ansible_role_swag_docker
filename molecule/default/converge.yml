@@ -7,7 +7,8 @@
     swag__email: "test@example.com"
     swag__remove_existing_container: false
     swag__remove_existing_home_dir: false
-    swag__port_web: 8080
+    swag__port_http: 8080
+    swag__port_https: 8443
     swag__pull_image: false
     # Skip Docker service management in test environment
     docker_service_manage: false
