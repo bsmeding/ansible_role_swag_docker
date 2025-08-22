@@ -23,16 +23,17 @@
 - name: Create a network for swag
   community.docker.docker_network:
     name: "{{ swag__network }}"
-    state: present
     ipam_config:
       - subnet: "{{ swag__network_cidr }}"
         gateway: "{{ swag__network_cidr | ansible.utils.ipaddr('next_usable') }}"
         iprange: "{{ swag__network_cidr }}"
+  when: swag__network_cidr is defined and swag__network_cidr != ''
 
 - name: Run swag container
   docker_container:
     name: "{{ swag__name }}"
     image: "{{ swag__image }}"
+    state: started
     restart_policy: unless-stopped
     network_mode: "{{ swag__network_mode | default(omit)}}"
     networks: "{{ swag__container_networks }}"
