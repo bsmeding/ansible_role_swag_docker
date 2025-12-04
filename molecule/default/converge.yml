@@ -1,48 +1,28 @@
 ---
-- name: Converge Swag Docker
+- name: Converge
   hosts: all
-  become: true
+
   vars:
-    swag__url: "swag.local"
-    swag__email: "test@example.com"
+    swag__home: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/.molecule/swag"
+    swag__port_http: 9080
+    swag__port_https: 9443
     swag__remove_existing_container: false
     swag__remove_existing_home_dir: false
-    swag__port_http: 8080
-    swag__port_https: 8443
-    swag__pull_image: false
-    # Skip Docker service management in test environment
-    docker_service_manage: false
+
   pre_tasks:
+    - name: Ensure Molecule directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0777"
+      loop:
+        - "{{ swag__home }}/config"
+        - "{{ swag__home }}/www"
+
     - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache: true
-        cache_valid_time: 600
-      when: ansible_os_family == 'Debian'
-
-    - name: Wait for systemd to complete initialization
-      ansible.builtin.command: systemctl is-system-running
-      register: systemctl_status
-      until: >
-        'running' in systemctl_status.stdout or
-        'degraded' in systemctl_status.stdout
-      retries: 30
-      delay: 5
-      when: ansible_service_mgr == 'systemd'
+      apt: update_cache=yes cache_valid_time=600
+      when: ansible_facts.os_family == 'Debian'
       changed_when: false
-      failed_when: systemctl_status.rc > 1
-
-    - name: Check if Docker socket exists
-      stat:
-        path: /var/run/docker.sock
-      register: docker_socket
-
-    - name: Ensure Docker socket permissions are correct
-      file:
-        path: /var/run/docker.sock
-        mode: '0666'
-      when: docker_socket.stat.exists and docker_socket.stat.exists
 
   roles:
-    - role: bsmeding.docker
-      when: docker_socket.stat.exists and docker_socket.stat.exists
     - role: bsmeding.swag_docker

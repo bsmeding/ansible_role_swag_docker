@@ -1,6 +1,4 @@
 ---
 roles:
-  - name: bsmeding.docker
-collections:
-  - name: community.docker
-  - name: community.general
+  - name: bsmeding.swag_docker
+    src: ../..

@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.13'
       - name: Install test dependencies.
         run: pip3 install yamllint
       - name: Lint code.
@@ -34,12 +34,10 @@ jobs:
     strategy:
       matrix:
         distro:
-          # - debian11
-          # - debian12
           - ubuntu2204
-          # - rockylinux8
-          # - rockylinux9
-          # - fedora42
+          - ubuntu2404
+          - debian12
+          - debian13
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v5
@@ -48,9 +46,15 @@ jobs:
       - name: Set up Python 3.
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
-      - name: Install test dependencies.
-        run: pip3 install ansible==9.5.1 molecule==24.2.1 molecule-plugins[docker]==23.5.3 docker==7.0.0 netaddr==1.2.1 requests==2.31.0
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: pip3 install ansible molecule molecule-plugins[docker] docker netaddr
+      - name: Pull CICD image
+        run: docker pull bsmeding/ansible_cicd_${{ matrix.distro }}:latest
+      - name: Prep Molecule tmp dir
+        run: |
+          mkdir -p .molecule/ansible-tmp
+          chmod 777 .molecule/ansible-tmp
       - name: Run Molecule tests.
         run: molecule test
         env:

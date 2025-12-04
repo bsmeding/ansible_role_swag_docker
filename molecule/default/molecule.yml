@@ -4,8 +4,8 @@ dependency:
   name: galaxy
   options:
     ignore-errors: true
-    ignore-certs: true
-    role-file: requirements.yml
+    role-file: molecule/default/requirements.yml
+    collections-file: molecule/default/collections.yml
 driver:
   name: docker
 platforms:
@@ -18,37 +18,11 @@ platforms:
     cgroupns_mode: host
     privileged: true
     pre_build_image: true
-    published_ports:
-      - "8080:80"
-    environment:
-      DOCKER_HOST: unix:///var/run/docker.sock
-    capabilities:
-      - SYS_ADMIN
-      - NET_ADMIN
-      - SYS_CHROOT
-      - SETGID
-      - SETUID
-      - DAC_OVERRIDE
-      - CHOWN
-      - FOWNER
-      - MKNOD
-      - NET_BIND_SERVICE
-      - SYS_BOOT
-      - SYS_RESOURCE
-      - SYS_TIME
-      - SYS_TTY_CONFIG
-      - AUDIT_WRITE
-      - MAC_OVERRIDE
-      - MAC_ADMIN
-      - SYSLOG
-      - WAKE_ALARM
-      - BLOCK_SUSPEND
-      - LEASE
 provisioner:
   name: ansible
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
     verify: ${MOLECULE_PLAYBOOK_VERIFY:-verify.yml}
-  config_options:
-    defaults:
-      roles_path: "../../../"
+  env:
+    ANSIBLE_COLLECTIONS_PATHS: "${MOLECULE_PROJECT_DIRECTORY}/.molecule/collections"
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.molecule/roles:${MOLECULE_PROJECT_DIRECTORY}/.."
