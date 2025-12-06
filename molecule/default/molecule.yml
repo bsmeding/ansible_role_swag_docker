@@ -22,5 +22,6 @@ provisioner:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
     verify: ${MOLECULE_PLAYBOOK_VERIFY:-verify.yml}
   env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
     # Fix for molecule-docker destroy playbook using strict conditionals
     ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "true"
