@@ -18,20 +18,33 @@
         swag__extra_env:
           CURL_HTTP_PORT: "{{ swag__port_http }}"
 
-    - name: "Wait for SWAG HTTP port {{ swag__port_http }} to come active"
-      ansible.builtin.command: >
-        docker exec {{ swag__name }} curl -fsS http://127.0.0.1:80
-      register: swag_http_ready
-      retries: 40
-      delay: 3
-      until: swag_http_ready.rc == 0
-      changed_when: false
-
     - name: Gather container info
       community.docker.docker_container_info:
         name: "{{ swag__name }}"
       register: swag_container
       failed_when: false
+
+    - name: Debug container state if not running
+      block:
+        - name: Get all containers (to see if name mismatch)
+          ansible.builtin.command: docker ps -a
+          register: docker_ps
+          changed_when: false
+
+        - name: Show all containers
+          ansible.builtin.debug:
+            var: docker_ps.stdout_lines
+
+        - name: Get logs for {{ swag__name }}
+          ansible.builtin.command: docker logs {{ swag__name }}
+          register: docker_logs
+          failed_when: false
+          changed_when: false
+
+        - name: Show logs
+          ansible.builtin.debug:
+            var: docker_logs.stderr_lines
+      when: swag_container.container is not defined or not (swag_container.container.State.Running | default(false))
 
     - name: Ensure container exists
       ansible.builtin.fail:
@@ -44,11 +57,21 @@
           - swag_container.container.State.Running | default(false)
         fail_msg: "Container {{ swag__name }} is not running"
 
-    - name: Check HTTP endpoint responds
+    - name: Get logs for {{ swag__name }} (debug)
+      ansible.builtin.command: docker logs {{ swag__name }}
+      register: docker_logs_debug
+      failed_when: false
+      changed_when: false
+
+    - name: Show logs (debug)
+      ansible.builtin.debug:
+        var: docker_logs_debug.stderr_lines
+
+    - name: "Wait for SWAG HTTP port {{ swag__port_http }} to come active"
       ansible.builtin.command: >
-        docker exec {{ swag__name }} curl -fsS -o /dev/null http://127.0.0.1:80
-      register: swag_http
-      retries: 20
+        docker exec {{ swag__name }} curl -fsS http://127.0.0.1:80
+      register: swag_http_ready
+      retries: 40
       delay: 3
-      until: swag_http.rc == 0
+      until: swag_http_ready.rc == 0
       changed_when: false

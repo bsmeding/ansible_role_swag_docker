@@ -16,29 +16,58 @@
     state: directory
     path: "{{ item.path }}"
     mode: "{{ item.mode | default('0755') }}"
-    owner: "{{ item.owner | default(docker_uid) | default('root') }}"  # First docker user (if docker role has run), otherwise default role, otherwise root
-    group: "{{ item.group | default(docker_gid) | default('root') }}"
+    owner: "{{ item.owner | default(docker_uid | default(1040)) }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    group: "{{ item.group | default(docker_gid | default(1001)) }}"
   with_items: "{{ swag__directories }}"
 
 - name: Create a network for swag
   community.docker.docker_network:
     name: "{{ swag__network }}"
+    state: present
     ipam_config:
       - subnet: "{{ swag__network_cidr }}"
         gateway: "{{ swag__network_cidr | ansible.utils.ipaddr('next_usable') }}"
         iprange: "{{ swag__network_cidr }}"
   when: swag__network_cidr is defined and swag__network_cidr != ''
+  failed_when: false
 
-- name: Run swag container
-  docker_container:
+- name: Run swag container (with network_mode)
+  community.docker.docker_container:
     name: "{{ swag__name }}"
     image: "{{ swag__image }}"
     state: started
+    pull: "{{ swag__pull_image | default(true) }}"
     restart_policy: unless-stopped
-    network_mode: "{{ swag__network_mode | default(omit)}}"
+    network_mode: "{{ swag__network_mode }}"
+    ports: "{{ swag__ports }}"
+    env: "{{ swag__default_env | combine(swag__env) }}"
+    volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
+    log_driver: "{{ swag__log_driver }}"
+    log_options: "{{ swag__log_options | default(omit) }}"
+  when: swag__network_mode is defined and swag__network_mode != '' and swag__network_mode != 'default'
+
+- name: Ensure networks exist before container creation
+  community.docker.docker_network:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ swag__container_networks }}"
+  when: 
+    - swag__network_mode is not defined or swag__network_mode == '' or swag__network_mode == 'default'
+    - item.name != 'bridge'  # bridge network always exists
+  failed_when: false
+  changed_when: false
+
+- name: Run swag container (with networks)
+  community.docker.docker_container:
+    name: "{{ swag__name }}"
+    image: "{{ swag__image }}"
+    state: started
+    pull: "{{ swag__pull_image | default(true) }}"
+    restart_policy: unless-stopped
     networks: "{{ swag__container_networks }}"
     ports: "{{ swag__ports }}"
     env: "{{ swag__default_env | combine(swag__env) }}"
     volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
     log_driver: "{{ swag__log_driver }}"
     log_options: "{{ swag__log_options | default(omit) }}"
+  when: swag__network_mode is not defined or swag__network_mode == '' or swag__network_mode == 'default'

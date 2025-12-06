@@ -1,0 +1,5 @@
+.molecule/
+.pytest_cache/
+.vscode/
+.DS_Store
+.idea/

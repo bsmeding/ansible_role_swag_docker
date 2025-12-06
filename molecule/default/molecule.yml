@@ -1,11 +1,15 @@
 ---
 role_name_check: 1
 dependency:
-  name: galaxy
-  options:
-    ignore-errors: true
-    role-file: molecule/default/requirements.yml
-    collections-file: molecule/default/collections.yml
+  name: shell
+  command: >
+    mkdir -p
+    "${MOLECULE_PROJECT_DIRECTORY}/.molecule/collections"
+    "${MOLECULE_PROJECT_DIRECTORY}/.molecule/roles" &&
+    ln -sfn "${MOLECULE_PROJECT_DIRECTORY}/../.." "${MOLECULE_PROJECT_DIRECTORY}/.molecule/roles/bsmeding.swag_docker" &&
+    ansible-galaxy collection install
+    -p "${MOLECULE_PROJECT_DIRECTORY}/.molecule/collections"
+    -r molecule/default/collections.yml
 driver:
   name: docker
 platforms:
@@ -26,3 +30,5 @@ provisioner:
   env:
     ANSIBLE_COLLECTIONS_PATHS: "${MOLECULE_PROJECT_DIRECTORY}/.molecule/collections"
     ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.molecule/roles:${MOLECULE_PROJECT_DIRECTORY}/.."
+    # Fix for molecule-docker destroy playbook using strict conditionals
+    ANSIBLE_ALLOW_BROKEN_CONDITIONALS: "true"

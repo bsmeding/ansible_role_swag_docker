@@ -6,13 +6,13 @@ swag__port_https: 443
 swag__skip_setup: false  # Disable setup stage of SWAG image
 swag__url: 'example.com'
 swag__subdomains: 'www'
-swag__validation: 'http'
+swag__validation: ''
 # swag__certprovider: 'zerossl'   # optional
 # swag__dnsplugin: 'cloudflare'   # optional
 # swag__cloudflare_global_email:   # optional
 # swag__cloudflare_global_api:   # optional
 # swag__cloudflare_api_token:   # optional
-swag__email: 'mail@example.com'
+swag__email: ''
 swag__only_subdomains: false
 # swag__extra_domain:
 swag__staging: true  # Only usable when letsencrypt is used as provider
@@ -46,14 +46,14 @@ swag__file_volumes:
   - "/var/run/docker.sock:/var/run/docker.sock:ro"
 swag__default_env:
   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
-  PUID: "{{ docker_uid|default(1040) }}"
-  PGID: "{{ docker_gid|default(1001) }}"
+  PUID: "{{ (docker_uid|default(1040)) | string }}"
+  PGID: "{{ (docker_gid|default(1001)) | string }}"
   URL: "{{ swag__url }}"
   SUBDOMAINS: "{{ swag__subdomains | default('www') }}"
-  VALIDATION: "{{ swag__validation | default('http') }}"
+  VALIDATION: "{{ swag__validation | default(omit) if swag__validation else omit }}"
   CERTPROVIDER: "{{ swag__certprovider | default(omit) }}"
   DNSPLUGIN: "{{ swag__dnsplugin | default(omit) }}"
-  EMAIL: "{{ swag__email }}"
+  EMAIL: "{{ swag__email | default(omit) if swag__email else omit }}"
   ONLY_SUBDOMAINS: "{{ swag__only_subdomains | default(false) | string }}"
   EXTRA_DOMAINS: "{{ swag__extra_domain | default(omit) }}"
   STAGING: "{{ swag__staging | default(false) | string }}"

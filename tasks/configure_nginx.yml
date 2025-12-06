@@ -14,40 +14,78 @@
   ansible.builtin.template:
     src: proxy-confs/template_subdomain.conf.j2
     dest: "{{ swag__home }}/config/nginx/proxy-confs/{{ item.server_name }}.subdomain.conf"
-    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
-    group: "{{ item.group | default(docker_gid) | default('root') }}"
+    owner: "{{ item.owner | default(docker_uid | default(1040)) }}"
+    group: "{{ item.group | default(docker_gid | default(1001)) }}"
   loop: "{{ swag__proxy_confs_subdomain }}"
   notify: restart swag
   when: swag__proxy_confs_subdomain is defined and swag__proxy_confs_subdomain|length>0
 
+- name: Find files in {{ playbook_dir }}/files/nginx/proxy-confs/
+  ansible.builtin.find:
+    paths: "{{ playbook_dir }}/files/nginx/proxy-confs/"
+    patterns: "*"
+  register: local_proxy_confs_files
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  failed_when: false
+
 - name: "Copy local proxy-confs if exists in {{ playbook_dir }}/files/nginx/proxy-confs/"
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/files/nginx/proxy-confs/"
-    dest: "{{ swag__home }}/config/nginx/proxy-confs"
-    owner: "{{ docker_uid }}"
-    group: "{{ docker_gid }}"
+    src: "{{ item.path }}"
+    dest: "{{ swag__home }}/config/nginx/proxy-confs/{{ item.path | basename }}"
+    owner: "{{ docker_uid | default(1040) }}"
+    group: "{{ docker_gid | default(1001) }}"
     mode: '0640'
-  failed_when: false
+  loop: "{{ local_proxy_confs_files.files | default([]) }}"
+  when: 
+    - local_proxy_confs_files is defined
+    - local_proxy_confs_files.files is defined
+    - local_proxy_confs_files.files | length > 0
   notify: restart swag
+
+- name: Find files in {{ playbook_dir }}/files/nginx/site-confs/
+  ansible.builtin.find:
+    paths: "{{ playbook_dir }}/files/nginx/site-confs/"
+    patterns: "*"
+  register: local_site_confs_files
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  failed_when: false
 
 - name: "Copy local site-confs if exists in {{ playbook_dir }}/files/nginx/site-confs/"
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/files/nginx/site-confs/"
-    dest: "{{ swag__home }}/config/nginx/site-confs"
-    owner: "{{ docker_uid }}"
-    group: "{{ docker_gid }}"
+    src: "{{ item.path }}"
+    dest: "{{ swag__home }}/config/nginx/site-confs/{{ item.path | basename }}"
+    owner: "{{ docker_uid | default(1040) }}"
+    group: "{{ docker_gid | default(1001) }}"
     mode: '0640'
-  failed_when: false
+  loop: "{{ local_site_confs_files.files | default([]) }}"
+  when: 
+    - local_site_confs_files is defined
+    - local_site_confs_files.files is defined
+    - local_site_confs_files.files | length > 0
   notify: restart swag
+
+- name: Find files in {{ playbook_dir }}/files/nginx/sites/
+  ansible.builtin.find:
+    paths: "{{ playbook_dir }}/files/nginx/sites/"
+    patterns: "*"
+  register: local_sites_files
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  failed_when: false
 
 - name: "Copy websites from ./files/nginx/sites/<subfolder> to /var/www (if exists)"
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/files/nginx/sites/"
     dest: "/var/www"
-    owner: "{{ docker_uid }}"
-    group: "{{ docker_gid }}"
+    owner: "{{ docker_uid | default(1040) }}"
+    group: "{{ docker_gid | default(1001) }}"
     mode: '0740'
-  failed_when: false
+  when: local_sites_files is defined and local_sites_files.files is defined and local_sites_files.files | length > 0
   notify: restart swag
 
 # Set DNS config, currently only cloudflare
@@ -55,7 +93,7 @@
   ansible.builtin.template:
     src: dns-conf/cloudflare.ini.j2
     dest: "{{ swag__home }}/config/dns-conf/cloudflare.ini"
-    owner: "{{ item.owner | default(docker_uid) | default('root') }}" # First docker user (if docker role has run), otherwise default role, otherwise root
-    group: "{{ item.group | default(docker_gid) | default('root') }}"
+    owner: "{{ docker_uid | default(1040) }}"
+    group: "{{ docker_gid | default(1001) }}"
   when: (swag__cloudflare_global_email is defined and swag__cloudflare_global_api is defined) or swag__cloudflare_api_token is defined
   notify: restart swag
