@@ -1,4 +1,0 @@
----
-- name: bsmeding.swag_docker
-  src: /Users/bsmeding/git/ANSIBLE_ROLES/ansible_role_swag_docker/../..
-  type: file

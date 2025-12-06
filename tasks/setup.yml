@@ -51,7 +51,7 @@
     name: "{{ item.name }}"
     state: present
   loop: "{{ swag__container_networks }}"
-  when: 
+  when:
     - swag__network_mode is not defined or swag__network_mode == '' or swag__network_mode == 'default'
     - item.name != 'bridge'  # bridge network always exists
   failed_when: false
