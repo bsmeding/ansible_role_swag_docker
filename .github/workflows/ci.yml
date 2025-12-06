@@ -42,7 +42,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v5
         with:
-          path: 'ansible_role_swag_docker'
+          path: 'bsmeding.swag_docker'
       - name: Set up Python 3.
         uses: actions/setup-python@v5
         with:
