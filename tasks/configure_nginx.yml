@@ -38,7 +38,7 @@
     group: "{{ docker_gid | default(1001) }}"
     mode: '0640'
   loop: "{{ local_proxy_confs_files.files | default([]) }}"
-  when: 
+  when:
     - local_proxy_confs_files is defined
     - local_proxy_confs_files.files is defined
     - local_proxy_confs_files.files | length > 0
@@ -62,7 +62,7 @@
     group: "{{ docker_gid | default(1001) }}"
     mode: '0640'
   loop: "{{ local_site_confs_files.files | default([]) }}"
-  when: 
+  when:
     - local_site_confs_files is defined
     - local_site_confs_files.files is defined
     - local_site_confs_files.files | length > 0

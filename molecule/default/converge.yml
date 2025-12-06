@@ -32,7 +32,5 @@
       when: ansible_facts.os_family == 'Debian'
       changed_when: false
 
-  tasks:
-    - name: Include the role
-      include_role:
-        name: ansible_role_swag_docker
+  roles:
+    - role: bsmeding.swag_docker
