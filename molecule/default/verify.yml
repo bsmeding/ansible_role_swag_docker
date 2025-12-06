@@ -57,16 +57,6 @@
           - swag_container.container.State.Running | default(false)
         fail_msg: "Container {{ swag__name }} is not running"
 
-    - name: Get logs for {{ swag__name }} (debug)
-      ansible.builtin.command: docker logs {{ swag__name }}
-      register: docker_logs_debug
-      failed_when: false
-      changed_when: false
-
-    - name: Show logs (debug)
-      ansible.builtin.debug:
-        var: docker_logs_debug.stderr_lines
-
     - name: "Wait for SWAG HTTP port {{ swag__port_http }} to come active"
       ansible.builtin.command: >
         docker exec {{ swag__name }} curl -fsS http://127.0.0.1:80
