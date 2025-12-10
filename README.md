@@ -58,7 +58,19 @@ When accessing SWAG through Tailscale, nginx may see all requests as coming from
 | `swag__enable_tailscale_real_ip` | `false` | Enable Tailscale real IP extraction. When enabled, automatically includes Tailscale real IP configuration in all generated proxy configs. |
 | `swag__tailscale_network_cidr` | `100.0.0.0/8` | Tailscale network CIDR range. Change only if using a custom Tailscale network range. |
 
-**Note:** When enabled, this adds `set_real_ip_from 100.0.0.0/8;` and related directives to all server blocks generated from `swag__proxy_confs_subdomain`. This allows nginx to extract the real client IP from the `X-Forwarded-For` header for Tailscale traffic, enabling ACL rules to work correctly.
+**Note:** When `swag__enable_tailscale_real_ip` is set to `true`:
+- **Template-generated configs**: All proxy configs generated from `swag__proxy_confs_subdomain` using the `template_subdomain.conf.j2` template will automatically include the Tailscale real IP configuration. No manual intervention needed.
+- **Static/manual config files**: Proxy config files that are manually created or copied from `files/nginx/proxy-confs/` (not generated from the template) must be manually updated to include the Tailscale real IP configuration. Add the following lines to each server block, right after the `server_name` directive:
+  ```nginx
+  server_name your-domain.com;
+  
+  # Tailscale Real IP Configuration
+  include /config/nginx/tailscale-real-ip.conf;
+  
+  # ... rest of config
+  ```
+
+This allows nginx to extract the real client IP from the `X-Forwarded-For` header for Tailscale traffic, enabling ACL rules to work correctly.
 
 ### Tailscale Device Persistence
 
