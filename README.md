@@ -82,7 +82,14 @@ This allows nginx to extract the real client IP from the `X-Forwarded-For` heade
 
 To prevent Tailscale from creating a new device entry every time the SWAG container is redeployed:
 
-1. **Use a Reusable Auth Key**: Create a reusable auth key in the Tailscale admin console (Settings → Keys → Generate auth key → check "Reusable"). Ephemeral (one-time) keys will cause a new device to be created on each container restart.
+1. **Use a Reusable Auth Key** (CRITICAL): This is the most important step. Create a reusable auth key in the Tailscale admin console:
+   - Go to [Tailscale Admin Console](https://login.tailscale.com/admin/settings/keys)
+   - Click "Generate auth key"
+   - **Check the "Reusable" checkbox** (this is essential!)
+   - Optionally check "Preauthorized" to skip manual approval
+   - Copy the key and update `TAILSCALE_AUTHKEY` in `swag__env`
+   
+   **Warning**: Ephemeral (one-time) keys will cause a new device to be created on each container restart, even if the state directory is persisted.
 
 2. **Set Consistent Hostname**: Ensure `TAILSCALE_HOSTNAME` is set to a consistent value (e.g., `proxy`) in `swag__env`:
    ```yaml
@@ -96,6 +103,21 @@ To prevent Tailscale from creating a new device entry every time the SWAG contai
      - "{{ swag__home }}/config:/config"
      - "{{ swag__home }}/tailscale:/var/lib/tailscale"
    ```
+
+4. **Verify State Persistence**: After the first container start, verify that Tailscale state files are created:
+   ```bash
+   ls -la /opt/swag/tailscale/
+   ```
+   You should see files like `tailscaled.state` and other state files. If the directory is empty after the first run, check container logs for Tailscale errors.
+
+**Troubleshooting Device Re-registration:**
+
+If a new device is still created on each redeploy:
+- Verify the auth key is reusable: Check in Tailscale admin console under Settings → Keys
+- Check that `/opt/swag/tailscale/` contains state files (especially `tailscaled.state`)
+- Ensure the volume mount is working: `docker inspect swag | grep -A 10 Mounts`
+- Check Tailscale logs: `docker logs swag | grep -i tailscale`
+- Delete old device entries in Tailscale admin console to avoid clutter
 
 The Tailscale state directory (`{{ swag__home }}/tailscale`) is automatically created by the role to ensure state persistence across container redeployments.
 

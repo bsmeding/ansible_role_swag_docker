@@ -20,6 +20,15 @@
     group: "{{ item.group | default(docker_gid | default(1001)) }}"
   with_items: "{{ swag__directories }}"
 
+- name: Ensure Tailscale state directory is writable by root (Tailscale runs as root in container)
+  file:
+    path: "{{ swag__home }}/tailscale"
+    state: directory
+    mode: "0700"  # Owner (root) only - secure: Tailscale runs as root in container
+    owner: root  # Tailscale typically runs as root in container, so files are created as root:root
+    group: root
+  when: swag__directory_volumes is defined and ("tailscale" in (swag__directory_volumes | join(" ")))
+
 - name: Create a network for swag
   community.docker.docker_network:
     name: "{{ swag__network }}"

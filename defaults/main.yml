@@ -38,12 +38,15 @@ swag__directories:
   - path: "{{ swag__home }}/config"
     mode: "0770"
   - path: "{{ swag__home }}/tailscale"
-    mode: "0770"
+    mode: "0700"  # Owner (root) only: Tailscale runs as root in container
+    owner: root    # Tailscale runs as root, so files are created as root:root
+    group: root
 swag__ports:
   - "{{ swag__port_http }}:80"
   - "{{ swag__port_https }}:443"
 swag__directory_volumes:
   - "{{ swag__home }}/config:/config"
+  - "{{ swag__home }}/tailscale:/var/lib/tailscale"
 swag__file_volumes:
   - "/var/run/docker.sock:/var/run/docker.sock:ro"
 swag__default_env:
