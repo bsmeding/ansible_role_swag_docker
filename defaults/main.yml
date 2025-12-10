@@ -66,6 +66,7 @@ swag__default_env:
   CF_ZONE_ID: "{{ swag__cloudflare_zone_id | default(omit) }}"
   CF_ACCOUNT_ID: "{{ swag__cloudflare_account_id | default(omit) }}"
   CF_API_TOKEN: "{{ swag__cloudflare_api_token | default(omit) }}"
+  TAILSCALE_STATE_DIR: "{{ swag__tailscale_state_dir | default(omit) }}"
 swag__env: {}
 swag__proxy_confs_subdomain: []
 
