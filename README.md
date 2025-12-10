@@ -70,6 +70,12 @@ When accessing SWAG through Tailscale, nginx may see all requests as coming from
   # ... rest of config
   ```
 
+**Important:** The Tailscale real IP configuration trusts both the Tailscale network (`100.0.0.0/8`) and localhost (`127.0.0.1`) to extract the real client IP from the `X-Forwarded-For` header. However, if Tailscale's docker mod doesn't set the `X-Forwarded-For` header, you may still see `127.0.0.1` in logs. In that case, you may need to:
+
+1. Check if traffic is actually coming from a Tailscale IP (`100.x.x.x`) by examining nginx access logs with `$remote_addr`
+2. Ensure your ACL rules include `allow 127.0.0.1/32;` if Tailscale forwards traffic via localhost
+3. Consider using Tailscale's `TAILSCALE_SERVE_MODE` and `TAILSCALE_SERVE_PORT` environment variables to configure how Tailscale forwards traffic
+
 This allows nginx to extract the real client IP from the `X-Forwarded-For` header for Tailscale traffic, enabling ACL rules to work correctly.
 
 ### Tailscale Device Persistence
