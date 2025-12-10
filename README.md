@@ -49,6 +49,38 @@ Available variables are listed below, along with default values (see `defaults/m
 | `swag__cloudflare_zone_id` | `omit` | Cloudflare Zone ID. |
 | `swag__cloudflare_account_id` | `omit` | Cloudflare Account ID. |
 
+### Tailscale Real IP Configuration (Optional)
+
+When accessing SWAG through Tailscale, nginx may see all requests as coming from `127.0.0.1` instead of the real Tailscale client IP. This causes ACL (access control list) rules to fail. Enable Tailscale real IP support to extract the real client IP from Tailscale traffic.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `swag__enable_tailscale_real_ip` | `false` | Enable Tailscale real IP extraction. When enabled, automatically includes Tailscale real IP configuration in all generated proxy configs. |
+| `swag__tailscale_network_cidr` | `100.0.0.0/8` | Tailscale network CIDR range. Change only if using a custom Tailscale network range. |
+
+**Note:** When enabled, this adds `set_real_ip_from 100.0.0.0/8;` and related directives to all server blocks generated from `swag__proxy_confs_subdomain`. This allows nginx to extract the real client IP from the `X-Forwarded-For` header for Tailscale traffic, enabling ACL rules to work correctly.
+
+### Tailscale Device Persistence
+
+To prevent Tailscale from creating a new device entry every time the SWAG container is redeployed:
+
+1. **Use a Reusable Auth Key**: Create a reusable auth key in the Tailscale admin console (Settings → Keys → Generate auth key → check "Reusable"). Ephemeral (one-time) keys will cause a new device to be created on each container restart.
+
+2. **Set Consistent Hostname**: Ensure `TAILSCALE_HOSTNAME` is set to a consistent value (e.g., `proxy`) in `swag__env`:
+   ```yaml
+   swag__env:
+     TAILSCALE_HOSTNAME: proxy
+   ```
+
+3. **Persist Tailscale State**: The role automatically creates `{{ swag__home }}/tailscale` directory and mounts it to `/var/lib/tailscale` in the container. Ensure this volume is included in `swag__directory_volumes`:
+   ```yaml
+   swag__directory_volumes:
+     - "{{ swag__home }}/config:/config"
+     - "{{ swag__home }}/tailscale:/var/lib/tailscale"
+   ```
+
+The Tailscale state directory (`{{ swag__home }}/tailscale`) is automatically created by the role to ensure state persistence across container redeployments.
+
 ### Reverse Proxy Configuration
 
 This role can automatically create Nginx proxy configuration files for subdomains.
@@ -81,8 +113,13 @@ This will create `plex.subdomain.conf` in the `proxy-confs` directory using the 
         swag__validation: "http"
         swag__email: "admin@mydomain.com"
         swag__staging: false
+        swag__enable_tailscale_real_ip: true  # Enable Tailscale real IP support
         swag__proxy_confs_subdomain:
           - server_name: "whoami"
+            listen: 443
+            acl:
+              - 'allow 100.0.0.0/8'  # Tailscale network
+              - 'deny all'
 ```
 
 ## License

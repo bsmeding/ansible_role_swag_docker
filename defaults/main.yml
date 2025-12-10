@@ -37,6 +37,8 @@ swag__directories:
     mode: "0760"
   - path: "{{ swag__home }}/config"
     mode: "0770"
+  - path: "{{ swag__home }}/tailscale"
+    mode: "0770"
 swag__ports:
   - "{{ swag__port_http }}:80"
   - "{{ swag__port_https }}:443"
@@ -63,3 +65,15 @@ swag__default_env:
   CF_API_TOKEN: "{{ swag__cloudflare_api_token | default(omit) }}"
 swag__env: {}
 swag__proxy_confs_subdomain: []
+
+# Tailscale Real IP Configuration
+swag__enable_tailscale_real_ip: false  # Enable Tailscale real IP extraction for nginx
+swag__tailscale_network_cidr: '100.0.0.0/8'  # Tailscale network CIDR
+
+# Tailscale Configuration
+# Note: To prevent Tailscale from creating a new device on each container redeploy:
+# 1. Use a REUSABLE auth key (not ephemeral) - create one in Tailscale admin console with "Reusable" option
+# 2. Set TAILSCALE_HOSTNAME to a consistent value (e.g., "proxy")
+# 3. Ensure TAILSCALE_STATE_DIR is set to /var/lib/tailscale (default, but can be overridden)
+# The tailscale directory is automatically created in swag__directories to persist state
+swag__tailscale_state_dir: '/var/lib/tailscale'  # Tailscale state directory inside container

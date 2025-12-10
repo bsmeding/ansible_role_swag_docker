@@ -9,6 +9,11 @@ server {
 
     server_name {{ item.server_name }};
 
+{% if swag__enable_tailscale_real_ip | default(false) | bool %}
+    # Tailscale Real IP Configuration
+    include /config/nginx/tailscale-real-ip.conf;
+{% endif %}
+
 {% if item.acl is defined %}
 {% for aclline in item.acl %}
     {{ aclline }};

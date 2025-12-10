@@ -1,0 +1,14 @@
+# Tailscale Real IP Configuration
+# This file configures nginx to extract the real client IP from Tailscale network
+# Include this file in your server blocks to enable Tailscale real IP support
+# Usage: include /config/nginx/tailscale-real-ip.conf; (in server block)
+
+# Trust Tailscale network (default: 100.0.0.0/8)
+set_real_ip_from {{ swag__tailscale_network_cidr | default('100.0.0.0/8') }};
+
+# Use X-Forwarded-For header to get real IP
+real_ip_header X-Forwarded-For;
+
+# Enable recursive real IP lookup
+real_ip_recursive on;
+

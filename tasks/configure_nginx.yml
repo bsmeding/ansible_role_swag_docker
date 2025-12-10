@@ -97,3 +97,14 @@
     group: "{{ docker_gid | default(1001) }}"
   when: (swag__cloudflare_global_email is defined and swag__cloudflare_global_api is defined) or swag__cloudflare_api_token is defined
   notify: restart swag
+
+# Copy Tailscale real IP configuration
+- name: Copy Tailscale real IP configuration
+  ansible.builtin.template:
+    src: tailscale-real-ip.conf.j2
+    dest: "{{ swag__home }}/config/nginx/tailscale-real-ip.conf"
+    owner: "{{ docker_uid | default(1040) }}"
+    group: "{{ docker_gid | default(1001) }}"
+    mode: '0640'
+  when: swag__enable_tailscale_real_ip | default(false) | bool
+  notify: restart swag
