@@ -1,7 +1,5 @@
 ---
-- name: restart swag
-  debug:
-    msg: "Restarting swag"
-  # docker_container:
-  #   name: "{{ swag__name }}"
-  #   restart: true
+- name: restart swag  
+  community.docker.docker_container:
+    name: "{{ swag__name }}"
+    restart: true
