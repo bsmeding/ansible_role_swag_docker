@@ -2,4 +2,7 @@
 - name: restart swag
   community.docker.docker_container:
     name: "{{ swag__name }}"
+    state: started
     restart: true
+    recreate: false
+    container_default_behavior: no_defaults
