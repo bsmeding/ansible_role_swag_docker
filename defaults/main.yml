@@ -52,69 +52,24 @@ swag__directory_volumes:
   - "{{ swag__home }}/wwwroot:/opt/wwwroot"
 swag__file_volumes:
   - "/var/run/docker.sock:/var/run/docker.sock:ro"
-swag__base_env: # All mandatory fields for swag container to run
+swag__default_env:
   TZ: "{{ container_time_zone | default('Europe/Paris') }}"
-  PUID: "{{ (docker_uid | default(1040)) | string }}"
-  PGID: "{{ (docker_gid | default(1001)) | string }}"
+  PUID: "{{ (docker_uid|default(1040)) | string }}"
+  PGID: "{{ (docker_gid|default(1001)) | string }}"
   URL: "{{ swag__url }}"
   SUBDOMAINS: "{{ swag__subdomains | default('www') }}"
+  VALIDATION: "{{ swag__validation | default('') }}"
+  CERTPROVIDER: "{{ swag__certprovider | default('') }}"
+  DNSPLUGIN: "{{ swag__dnsplugin | default('') }}"
+  EMAIL: "{{ swag__email | default('') }}"
   ONLY_SUBDOMAINS: "{{ swag__only_subdomains | default(false) | string }}"
-  STAGING: "{{ swag__staging | default(false) | string }}"  
-# Optional fields for swag container to run
-swag__default_env: >-
-  {{
-    swag__base_env
-    | combine(
-        swag__validation is defined and swag__validation != ''
-        | ternary({'VALIDATION': swag__validation}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__certprovider is defined and swag__certprovider != ''
-        | ternary({'CERTPROVIDER': swag__certprovider}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__dnsplugin is defined and swag__dnsplugin != ''
-        | ternary({'DNSPLUGIN': swag__dnsplugin}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__email is defined and swag__email != ''
-        | ternary({'EMAIL': swag__email}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__extra_domain is defined
-        | ternary({'EXTRA_DOMAINS': swag__extra_domain}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__docker_mods is defined
-        | ternary({'DOCKER_MODS': swag__docker_mods}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__cloudflare_zone_id is defined
-        | ternary({'CF_ZONE_ID': swag__cloudflare_zone_id}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__cloudflare_account_id is defined
-        | ternary({'CF_ACCOUNT_ID': swag__cloudflare_account_id}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__cloudflare_api_token is defined
-        | ternary({'CF_API_TOKEN': swag__cloudflare_api_token}, {}),
-        recursive=True
-      )
-    | combine(
-        swag__tailscale_state_dir is defined
-        | ternary({'TAILSCALE_STATE_DIR': swag__tailscale_state_dir}, {}),
-        recursive=True
-      )
-  }}
+  EXTRA_DOMAINS: "{{ swag__extra_domain | default('') }}"
+  STAGING: "{{ swag__staging | default(false) | string }}"
+  DOCKER_MODS: "{{ swag__docker_mods | default('') }}"
+  CF_ZONE_ID: "{{ swag__cloudflare_zone_id | default('') }}"
+  CF_ACCOUNT_ID: "{{ swag__cloudflare_account_id | default('') }}"
+  CF_API_TOKEN: "{{ swag__cloudflare_api_token | default('') }}"
+  TAILSCALE_STATE_DIR: "{{ swag__tailscale_state_dir | default('') }}"
 swag__env: {}
 swag__proxy_confs_subdomain: []
 
