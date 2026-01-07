@@ -20,7 +20,7 @@ swag__docker_mods: 'linuxserver/mods:swag-cloudflare-real-ip'  # See https://git
 swag__remove_existing_container: false
 swag__remove_existing_home_dir: false  # ONLY FOR AUTOMATED TEST!! WILL REMOVE ALL DATA!!!!
 swag__pull_image: true
-
+swag__hide_sensitive_logs: true
 swag__network_mode: 'default'
 swag__network_cidr: '172.16.81.0/26'
 swag__network: 'proxy'

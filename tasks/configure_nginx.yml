@@ -9,7 +9,7 @@
 #   register: local_proxy_confs_files
 #   delegate_to: localhost
 
-# Proxy confs must end in subdomain.conf to auto load
+# Proxy confs must end in subdomain.conf to auto load (hide logs as proxy conf can have ssl passwords)
 - name: Generate proxy confs from swag__proxy_confs_subdomain variable
   ansible.builtin.template:
     src: proxy-confs/template_subdomain.conf.j2
@@ -19,6 +19,7 @@
   loop: "{{ swag__proxy_confs_subdomain }}"
   notify: restart swag
   when: swag__proxy_confs_subdomain is defined and swag__proxy_confs_subdomain|length>0
+  no_log: "{{ swag__hide_sensitive_logs }}"
 
 - name: Find files in {{ playbook_dir }}/files/nginx/proxy-confs/
   ansible.builtin.find:
