@@ -1,34 +1,16 @@
 ---
 - name: restart swag
-  block:
-    - name: restart swag (with network_mode)
-      community.docker.docker_container:
-        name: "{{ swag__name }}"
-        image: "{{ swag__image }}"
-        state: started
-        restart: true
-        recreate: false
-        restart_policy: unless-stopped
-        network_mode: "{{ swag__network_mode }}"
-        ports: "{{ swag__ports }}"
-        env: "{{ (swag__default_env | default({})) | combine(swag__env | default({})) }}"
-        volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
-        log_driver: "{{ swag__log_driver }}"
-        log_options: "{{ swag__log_options | default(omit) }}"
-      when: swag__network_mode is defined and swag__network_mode != '' and swag__network_mode != 'default'
-
-    - name: restart swag (with networks)
-      community.docker.docker_container:
-        name: "{{ swag__name }}"
-        image: "{{ swag__image }}"
-        state: started
-        restart: true
-        recreate: false
-        restart_policy: unless-stopped
-        networks: "{{ swag__container_networks }}"
-        ports: "{{ swag__ports }}"
-        env: "{{ (swag__default_env | default({})) | combine(swag__env | default({})) }}"
-        volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
-        log_driver: "{{ swag__log_driver }}"
-        log_options: "{{ swag__log_options | default(omit) }}"
-      when: swag__network_mode is not defined or swag__network_mode == '' or swag__network_mode == 'default'
+  community.docker.docker_container:
+    name: "{{ swag__name }}"
+    image: "{{ swag__image }}"
+    state: started
+    restart: true
+    recreate: false
+    restart_policy: unless-stopped
+    network_mode: "{{ swag__network_mode if (swag__network_mode is defined and swag__network_mode != '' and swag__network_mode != 'default') else omit }}"
+    networks: "{{ swag__container_networks if (swag__network_mode is not defined or swag__network_mode == '' or swag__network_mode == 'default') else omit }}"
+    ports: "{{ swag__ports }}"
+    env: "{{ (swag__default_env | default({})) | combine(swag__env | default({})) }}"
+    volumes: "{{ swag__directory_volumes + swag__file_volumes }}"
+    log_driver: "{{ swag__log_driver }}"
+    log_options: "{{ swag__log_options | default(omit) }}"
