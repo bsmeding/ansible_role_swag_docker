@@ -5,7 +5,7 @@ galaxy_info:
   role_name: swag_docker
   author: bsmeding
   description: Secure Web Application Gateway (SWAG) running in docker container
-  company: "b@rtsmeding.nl"
+  company: "b@rtsmeding IT"
   license: MIT
   min_ansible_version: 2.10
   platforms:
