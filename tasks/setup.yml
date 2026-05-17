@@ -16,7 +16,7 @@
     state: directory
     path: "{{ item.path }}"
     mode: "{{ item.mode | default('0755') }}"
-    owner: "{{ item.owner | default(docker_uid | default(1040)) }}" # First docker user (if docker role has run), otherwise default role, otherwise root
+    owner: "{{ item.owner | default(docker_uid | default(1040)) }}"  # First docker user (if docker role has run), otherwise default role, otherwise root
     group: "{{ item.group | default(docker_gid | default(1001)) }}"
   with_items: "{{ swag__directories }}"
 

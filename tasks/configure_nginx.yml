@@ -229,4 +229,3 @@
     mode: '0640'
   when: swag__enable_tailscale_real_ip | default(false) | bool
   notify: restart swag
-
