@@ -77,6 +77,11 @@ swag__proxy_confs_subdomain: []
 swag__enable_tailscale_real_ip: false  # Enable Tailscale real IP extraction for nginx
 swag__tailscale_network_cidr: '100.0.0.0/8'  # Tailscale network CIDR
 
+# Per-site GeoIP country filter (linuxserver/mods:swag-maxmind — GeoLite DB in container)
+# Configure per vhost via geoip: on swag__proxy_confs_subdomain items, or swag__geoip_sites for manual proxy-confs
+swag__geoip_sites: []
+swag__geoip_deny_http_code: 403
+
 # Tailscale Configuration
 # Note: To prevent Tailscale from creating a new device on each container redeploy:
 # 1. Use a REUSABLE auth key (not ephemeral) - create one in Tailscale admin console with "Reusable" option

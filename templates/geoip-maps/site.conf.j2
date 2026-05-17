@@ -1,0 +1,42 @@
+# Per-site GeoIP maps for {{ geoip_site.server_name }} (managed by bsmeding.swag_docker)
+# Requires swag-maxmind: $geoip2_data_country_iso_code in http { } and include /config/nginx/geoip-maps-http.conf;
+{% set geo_slug = geoip_site.server_name | regex_replace('[^a-zA-Z0-9]', '_') %}
+{% set mode = geoip_site.mode | default('blacklist') %}
+{% set codes = geoip_site.countries | default([]) %}
+
+{% if mode == 'whitelist' and codes | length == 0 %}
+map $geoip2_data_country_iso_code $geo_whitelist_{{ geo_slug }} {
+    default yes;
+}
+
+map $geoip2_data_country_iso_code $geo_blacklist_{{ geo_slug }} {
+    default yes;
+}
+
+{% elif mode == 'whitelist' %}
+map $geoip2_data_country_iso_code $geo_whitelist_{{ geo_slug }} {
+    default no;
+    "" yes;
+{% for c in codes %}
+    {{ c | upper }} yes;
+{% endfor %}
+}
+
+map $geoip2_data_country_iso_code $geo_blacklist_{{ geo_slug }} {
+    default yes;
+}
+
+{% else %}
+map $geoip2_data_country_iso_code $geo_blacklist_{{ geo_slug }} {
+    default yes;
+    "" yes;
+{% for c in codes %}
+    {{ c | upper }} no;
+{% endfor %}
+}
+
+map $geoip2_data_country_iso_code $geo_whitelist_{{ geo_slug }} {
+    default yes;
+}
+
+{% endif %}

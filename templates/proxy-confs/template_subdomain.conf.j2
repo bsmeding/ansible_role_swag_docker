@@ -23,6 +23,13 @@ server {
 
     include /config/nginx/ssl.conf;
 
+{% if item.geoip is defined %}
+{% set geo_slug = item.server_name | regex_replace('[^a-zA-Z0-9]', '_') %}
+    # GeoIP country filter (maps: /config/nginx/geoip-maps.d/{{ item.server_name }}.conf)
+    if ($geo_blacklist_{{ geo_slug }} = no) { return {{ item.geoip.deny_code | default(swag__geoip_deny_http_code | default(403)) }}; }
+    if ($geo_whitelist_{{ geo_slug }} = no) { return {{ item.geoip.deny_code | default(swag__geoip_deny_http_code | default(403)) }}; }
+{% endif %}
+
     client_max_body_size 0;
 
 {% if item.enable_ldap is defined and item.enable_ldap %}

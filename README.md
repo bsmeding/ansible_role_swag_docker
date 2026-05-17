@@ -58,6 +58,89 @@ When accessing SWAG through Tailscale, nginx may see all requests as coming from
 | `swag__enable_tailscale_real_ip` | `false` | Enable Tailscale real IP extraction. When enabled, automatically includes Tailscale real IP configuration in all generated proxy configs. |
 | `swag__tailscale_network_cidr` | `100.0.0.0/8` | Tailscale network CIDR range. Change only if using a custom Tailscale network range. |
 
+### GeoIP country filter per site (swag-dbip / swag-maxmind)
+
+Country blocking is **per vhost only** — there is no global country list. Each site that needs filtering gets its own nginx `map` file and server-block checks.
+
+**Prerequisites (once per SWAG instance)**
+
+1. `DOCKER_MODS` includes either `linuxserver/mods:swag-dbip` or `linuxserver/mods:swag-maxmind`.
+2. The selected mod has initialized its GeoIP database and provider config (`/config/nginx/dbip.conf` or `/config/nginx/maxmind.conf`).
+3. `http { }` includes the provider config (`include /config/nginx/dbip.conf;` or `maxmind.conf`).
+
+When any site uses `geoip:` (or `swag__geoip_sites`), the role manages everything automatically — no manual edits to `nginx.conf`, `dbip.conf`, or `maxmind.conf`:
+
+- Deploys per-site maps under `geoip-maps.d/`
+- Deploys `geoip-maps-http.conf` and includes it from the provider config
+- Adds `include /config/nginx/dbip.conf;` (or `maxmind.conf`) to `nginx.conf` inside `http { }`
+
+Existing includes are detected so redeploys stay idempotent (safe if you fixed things manually during troubleshooting).
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `swag__geoip_sites` | `[]` | GeoIP rules for **manual** proxy configs only (see below). |
+| `swag__geoip_deny_http_code` | `403` | Default HTTP status for blocked clients (`444` is valid in nginx). |
+
+Each site entry uses: `server_name`, `mode` (`blacklist` or `whitelist`), `countries` (ISO 3166-1 alpha-2 list), optional `deny_code`.
+
+#### Template-generated proxy (`swag__proxy_confs_subdomain`)
+
+Add a `geoip` key on the sites that should be filtered. The role creates `geoip-maps.d/<server_name>.conf` and adds the `if` checks to the generated `*.subdomain.conf`.
+
+```yaml
+swag__proxy_confs_subdomain:
+  - server_name: public.example.com
+    listen: 443
+    default_upstream_url: app
+    default_upstream_port: 8080
+    default_upstream_proto: http
+    geoip:
+      mode: blacklist
+      countries:
+        - CN
+        - RU
+      # deny_code: 403   # optional; defaults to swag__geoip_deny_http_code
+  - server_name: internal.example.com
+    listen: 443
+    # no geoip: — this vhost is not country-filtered
+    default_upstream_url: app
+    default_upstream_port: 8080
+    default_upstream_proto: http
+```
+
+- **`blacklist`**: listed countries are blocked; others allowed.
+- **`whitelist`**: only listed countries allowed; clients with no GeoIP country (typical RFC1918) are still allowed.
+
+#### Manual proxy configs (`files/nginx/proxy-confs/*.conf`)
+
+Copied/static configs are not templated. Use **both** steps:
+
+1. **Ansible** — define the same rules in `swag__geoip_sites` so the role deploys the map file:
+
+   ```yaml
+   swag__geoip_sites:
+     - server_name: huis.smeding.eu
+       mode: blacklist
+       countries:
+         - CN
+         - RU
+   ```
+
+2. **Nginx** — in the `server { }` block (after `include /config/nginx/ssl.conf;`), add the checks. The map variable suffix is `server_name` with non-alphanumeric characters replaced by `_` (e.g. `huis.smeding.eu` → `huis_smeding_eu`):
+
+   ```nginx
+   # GeoIP country filter (maps: /config/nginx/geoip-maps.d/huis.smeding.eu.conf)
+   if ($geo_blacklist_huis_smeding_eu = no) { return 403; }
+   if ($geo_whitelist_huis_smeding_eu = no) { return 403; }
+   ```
+
+   Both lines are required in the server block; only the map for your `mode` is meaningful (same pattern as the [swag-maxmind](https://github.com/linuxserver/docker-mods/tree/swag-maxmind) mod).
+
+   To derive the suffix from `server_name` in a shell:  
+   `echo 'huis.smeding.eu' | sed 's/[^a-zA-Z0-9]/_/g'`
+
+**Note:** Do not use the mod’s global `$geo-blacklist` / `$geo-whitelist` for per-site rules; those apply to every vhost that references them. This role uses per-site variables such as `$geo_blacklist_huis_smeding_eu`.
+
 **Note:** When `swag__enable_tailscale_real_ip` is set to `true`:
 - **Template-generated configs**: All proxy configs generated from `swag__proxy_confs_subdomain` using the `template_subdomain.conf.j2` template will automatically include the Tailscale real IP configuration. No manual intervention needed.
 - **Static/manual config files**: Proxy config files that are manually created or copied from `files/nginx/proxy-confs/` (not generated from the template) must be manually updated to include the Tailscale real IP configuration. Add the following lines to each server block, right after the `server_name` directive:
@@ -164,7 +247,7 @@ This will create `plex.subdomain.conf` in the `proxy-confs` directory using the 
 
 ## License
 
-MIT
+Apache-2.0
 
 ## Author Information
 
